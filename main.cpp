@@ -15,14 +15,16 @@ public:
     }
 };
 
-class DoublyLinkedList
-{
+class List{
 private:
     Node *head; // Pointer to the first node
     Node *tail; // Pointer to the last node
 
 public:
-    DoublyLinkedList() : head(nullptr), tail(nullptr) {}
+ List(){
+    head=nullptr;
+    tail=nullptr;
+ }
 
     void push_front(const string &value)
     { // Push a value to the front
@@ -191,7 +193,7 @@ public:
     }
 
     // Destructor to free up memory
-    ~DoublyLinkedList()
+     List()
     {
         Node *temp = head;
         while (temp != nullptr)
@@ -214,6 +216,30 @@ public:
         return tail;
     }
 };
+
+void print_help()
+{
+    cout << "*** Follows the syntax of Linux shell commands ***" << endl
+        << endl;
+    cout << "\thelp      -   print this message" << endl;
+    cout << "\tls        -   list contents of the current directory" << endl;
+    cout << "\ttree      -   list contents of the current directory in a tree-like format" << endl;
+    cout << "\tpwd       -   print the current working directory" << endl;
+    cout << "\tcd DIR    -   change directory to DIR" << endl;
+    cout << "\tfind N    -   find file or directory named N" << endl;
+    cout << "\tstat P    -   print metadata of file or directory at path P" << endl;
+    cout << "\tmkdir D   -   create a directory named D" << endl;
+    cout << "\ttouch F   -   create a file named F" << endl;
+    cout << "\trm P      -   remove the file or directory at path P" << endl;
+    cout << "\trmdir P   -   remove the directory at path P" << endl;
+    cout << "\tcp S D    -   copy file or directory from S to D" << endl;
+    cout << "\tmv S D    -   move file or directory from S to D" << endl;
+    cout << "\tedit P    -   edit the file at path P" << endl;
+    cout << "\tcat P     -   print the contents of the file at path P" << endl;
+    cout << "\tchmod M P -   change permissions of the file at path P to mode M" << endl;
+    cout << "\tclear     -   clear the console screen" << endl;
+    cout << "\texit      -   exit the shell" << endl;
+}
 
 int main()
 {
