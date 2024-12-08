@@ -193,7 +193,7 @@ public:
     }
 
     // Destructor to free up memory
-     List()
+    ~List()
     {
         Node *temp = head;
         while (temp != nullptr)
