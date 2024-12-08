@@ -210,24 +210,30 @@ string* split_name(string str) {
 
 TreeNode* cd(TreeNode* root, TreeNode* pwd, string path) {
     if (path.empty()) {
-        return pwd;
+        return pwd;  // If path is empty, return the current directory
     }
+
+    // If path starts with '/', reset to the root
     if (path[0] == '/') {
         pwd = root;
-        path = path.substr(1);
+        path = path.substr(1);  // Remove the leading '/'
     }
 
-    list paths = split(path, '/');  // This should return a list of strings
-    Node* temp = paths.getHead();  // Get the first node of the list
+    // Split the path into directories
+    list paths = split(path, '/');
+    Node* temp = paths.getHead();  // Get the first directory component
 
     while (temp != nullptr) {
-        string dir = temp->data;  // Extract the string data from the Node
+        string dir = temp->data;  // Get the directory name from the list
 
         if (dir == ".") {
+            // If the directory is ".", stay in the current directory
             temp = temp->next;
             continue;
         }
+
         if (dir == "..") {
+            // If the directory is "..", go up to the parent
             if (pwd->parent != nullptr) {
                 pwd = pwd->parent;
             }
@@ -235,16 +241,18 @@ TreeNode* cd(TreeNode* root, TreeNode* pwd, string path) {
             continue;
         }
 
-        //searches for a child node by name
+        // Search for the child directory
         pwd = find_on_pwd(pwd->child, dir);
         if (pwd == nullptr) {
+            // If directory is not found, print error and return nullptr
             cout << "cd: " << path << ": No such file or directory" << endl;
             return nullptr;
         }
 
         temp = temp->next;  // Move to the next directory in the list
     }
-    return pwd;
+
+    return pwd;  // Return the final directory
 }
 
 TreeNode* create(TreeNode* root, TreeNode* pwd, string path, char type) {
