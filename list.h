@@ -205,15 +205,47 @@ public:
         }
     }
 
+     string back() const {
+        if (tail != nullptr) {
+            return tail->data;
+        }
+        return "";
+    }
+
+    void clear() {
+        Node *temp = head;
+        while (temp != nullptr) {
+            Node *nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+        head = tail = nullptr;  // Reset head and tail to nullptr
+    }
+
     // Get the head of the list
     Node *getHead() const
     {
         return head;
     }
 
+     string front() const {
+        if (head != nullptr) {
+            return head->data;  // Access the 'data' of the first Node
+        }
+        throw std::out_of_range("List is empty");
+    }
+
     // Get the tail of the list
     Node *getTail() const
     {
         return tail;
+    }
+
+    Node* begin() {
+        return head;
+    }
+
+    Node* end() {
+        return nullptr;
     }
 };

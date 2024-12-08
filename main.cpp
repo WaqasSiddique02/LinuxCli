@@ -1,51 +1,9 @@
+#pragma once
 #include <iostream>
-#include <ctime>
-#include <sstream>
-#include <stdexcept>
-#include <iomanip>
 #include "list.h"
 #include "hashTable.h"
+#include "tree.h"
 using namespace std;
-
-string curr_time();
-class TreeNode
-{
-public:
-    string name;
-    list contents;
-    char type;
-    string cdate;
-    string mdate;
-    int permission;
-    TreeNode* parent;
-    TreeNode* link;
-    TreeNode* child;
-
-    TreeNode(TreeNode* pwd, const string& name)
-        : name(name), parent(pwd), permission(6),
-        cdate(curr_time()), mdate(curr_time()),
-        link(nullptr), child(nullptr) {}
-
-   string get_permission() const {
-    static HashTable permissions = []() {
-        HashTable ht;
-        ht.insert(0, "---");
-        ht.insert(1, "--x");
-        ht.insert(2, "-w-");
-        ht.insert(3, "-wx");
-        ht.insert(4, "r--");
-        ht.insert(5, "r-x");
-        ht.insert(6, "rw-");
-        ht.insert(7, "rwx");
-        return ht;
-    }();
-
-    return permissions.find(permission);
-}
-
-
-    ~TreeNode() = default;
-};
 
 void print_help()
 {
@@ -71,21 +29,206 @@ void print_help()
     cout << "\texit      -   exit the shell" << endl;
 }
 
-string curr_time() {
-    time_t t = time(nullptr);
-    struct tm tm;
 
-    if (localtime_s(&tm, &t) != 0) {
-        throw std::runtime_error("Failed to get local time");
+int main() {
+    // Create root node for the file system
+    TreeNode* root = new TreeNode(nullptr, "");
+    root->type = 'd';
+    TreeNode* pwd = root;
+
+    // Initialize file system with some default structure
+    linux_tree(root);
+
+    cout << endl;
+    print_help();
+
+    string cmd;
+    cout << endl << pwd_str(root, pwd) << ">> ";
+    
+    while (getline(cin >> ws, cmd)) {
+        list args = split(cmd, ' ');
+        TreeNode* temp_pwd = nullptr;
+
+        if (cmd == "help") {
+            print_help();
+        }
+        else if (args.front() == "ls") {
+            args.pop_front();
+            if (args.empty()) {
+                print_ls(pwd->child);
+            }
+            else {
+    for (const string& arg : args) {
+        cout << arg << ":" << endl;
+        temp_pwd = cd(root, pwd, arg);  // Assuming this changes pwd to the correct directory
+        
+        if (temp_pwd != nullptr) {
+            // Call the print_ls function to print the children (which is a list of Node*)
+            print_ls(temp_pwd->child);  
+        }
+    }
+}
+        }
+        else if (args.front() == "tree") {
+            args.pop_front();
+            if (args.empty()) {
+                print_tree(pwd->child, "");
+            }
+            else {
+                for (const string& arg : args) {
+                    cout << arg << ":\n.\n";
+                    temp_pwd = cd(root, pwd, arg);
+                    if (temp_pwd != nullptr) {
+                        print_tree(temp_pwd->child, "");
+                    }
+                }
+            }
+        }
+        else if (cmd == "pwd") {
+            cout << pwd_str(root, pwd) << endl;
+        }
+        else if (args.front() == "cd") {
+            args.pop_front();
+            if (args.empty()) {
+                pwd = root;
+            }
+            else {
+                temp_pwd = cd(root, pwd, args.front());
+                if (temp_pwd != nullptr) {
+                    pwd = temp_pwd;
+                }
+            }
+        }
+        else if (args.front() == "find") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "find: missing operand" << endl;
+            }
+            else {
+                for (const string& arg : args) {
+                    list res;
+                    if (arg[0] == '/') {
+                        res = find_names(root, root, arg);
+                    }
+                    else {
+                        res = find_names(pwd, pwd, arg);
+                    }
+                    if (res.empty()) {
+                        cout << "find: '" << arg << "': no such file or directory" << endl;
+                    }
+                    else {
+    for (Node* it = res.begin(); it != nullptr; it = it->next) {  // Iterating through Node* in custom list
+        cout << it->data << endl;  // Accessing the data (string) of each Node and printing it
+    }
+}
+                }
+            }
+        }
+        else if (args.front() == "stat") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "stat: missing operand" << endl;
+            }
+            else {
+                for (const string& arg : args) {
+                    print_stat(root, pwd, arg);
+                }
+            }
+        }
+        else if (args.front() == "mkdir") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "mkdir: missing operand" << endl;
+            }
+            else {
+                for (const string& arg : args) {
+                    create(root, pwd, arg, 'd');
+                }
+            }
+        }
+        else if (args.front() == "touch") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "touch: missing operand" << endl;
+            }
+            else {
+                for (const string& arg : args) {
+                    create(root, pwd, arg, '-');
+                }
+            }
+        }
+        else if (args.front() == "rm" || args.front() == "rmdir") {
+            string command = args.front();
+            args.pop_front();
+            if (args.empty()) {
+                cout << command << ": missing operand" << endl;
+            }
+            else {
+                for (const string& arg : args) {
+                    remove(root, pwd, arg);
+                }
+            }
+        }
+        else if (args.front() == "cp" || args.front() == "mv") {
+            string command = args.front();
+            args.pop_front();
+            if (args.size() != 2) {
+                cout << command << ": missing operand" << endl;
+            }
+            else {
+                int keep = (command == "cp") ? 1 : 0;
+                string src = args.front();
+                args.pop_front();
+                string dst = args.front();
+                args.pop_front();
+                dupl(root, pwd, src, dst, keep);
+            }
+        }
+        else if (args.front() == "edit") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "edit: missing operand" << endl;
+            }
+            else {
+                edit(root, pwd, args.front());
+            }
+        }
+        else if (args.front() == "cat") {
+            args.pop_front();
+            if (args.empty()) {
+                cout << "cat: missing operand" << endl;
+            }
+            else {
+                cat(root, pwd, args.front());
+            }
+        }
+        else if (args.front() == "chmod") {
+            args.pop_front();
+            if (args.size() < 2) {
+                cout << "chmod: missing operand" << endl;
+            }
+            else {
+                string perm = args.front();
+                args.pop_front();
+                chmod(root, pwd, args.front(), perm);
+            }
+        }
+        else if (cmd == "clear") {
+            clear_screen();
+        }
+        else if (cmd == "exit") {
+            break;
+        }
+        else {
+            cout << "Unknown command" << endl;
+        }
+
+        cout << endl << pwd_str(root, pwd) << ">> ";
     }
 
-    ostringstream oss;
-    oss << put_time(&tm, "%Y-%m-%d %H:%M:%S");
-    return oss.str();
-}
+    // Clean up memory
+    delete root;
 
-int main()
-{
-    cout << "Hellow world" << endl;
+    cout << endl;
     return 0;
 }

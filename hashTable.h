@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include "list.h" // Include your custom List class
+#include "list.h"
 
 using namespace std;
 
