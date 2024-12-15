@@ -33,7 +33,7 @@ public:
             if (pos != string::npos) {
                 int storedKey = stoi(temp->data.substr(0, pos));
                 if (storedKey == key) {
-                    return temp->data.substr(pos + 1); // Return value
+                    return temp->data.substr(pos + 1); 
                 }
             }
             temp = temp->next;

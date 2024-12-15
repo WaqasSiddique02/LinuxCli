@@ -158,6 +158,32 @@ TreeNode* find_node(TreeNode* root, TreeNode* pwd, string path) {
     return find_on_pwd(temp, last);
 }
 
+list find_names(TreeNode* root, TreeNode* pwd, std::string name)
+{
+    list res;  // List to store results
+
+    if (pwd == nullptr) {
+        return res;
+    }
+
+    if (pwd->name == name) {
+        res.push_back(pwd_str(pwd));
+    }
+
+    // Recursively find names in child and link
+    list res1 = find_names(root, pwd->child, name);
+    list res2 = find_names(root, pwd->link, name);
+
+    for (Node* temp = res1.begin(); temp != nullptr; temp = temp->next) {
+        res.push_back(temp->data);  // Add string data to res
+    }
+    for (Node* temp = res2.begin(); temp != nullptr; temp = temp->next) {
+        res.push_back(temp->data);  // Add string data to res
+    }
+
+    return res;
+}
+
 TreeNode* find_on_pwd(TreeNode* pwd, string name) {
     if (pwd == nullptr) {
         return nullptr;
@@ -298,21 +324,46 @@ void remove(TreeNode* root, TreeNode* pwd, string path) {
     cout << "rm: cannot remove '" << path << "': No such file or directory" << endl;
 }
 
-void dupl(TreeNode* root, TreeNode* pwd, string src, string dst, int keep) {
-    TreeNode* srcNode = find_node(root, pwd, src);
-    TreeNode* dstNode = find_node(root, pwd, dst);
-    
-    if (srcNode != nullptr && dstNode != nullptr) {
-        if (keep) {
-            create(root, pwd, dst, srcNode->type);
-        }
-
-        if (srcNode->type == 'd') {
-            dupl(root, srcNode, src, dst + "/" + srcNode->name, keep);
-        }
-    } else {
-        cout << "Error: Invalid paths" << endl;
+void dupl(TreeNode* root, TreeNode* pwd, string src, string dst, int keep)
+{
+    string* src_paths = split_name(src);
+    string* dst_paths = split_name(dst);
+    TreeNode* src_dir = cd(root, pwd, src_paths[0]);
+    TreeNode* dst_dir = cd(root, pwd, dst_paths[0]);
+    if (src_dir == nullptr || dst_dir == nullptr)
+    {
+        return;
     }
+    TreeNode* src_node = find_on_pwd(src_dir->child, src_paths[1]);
+    if (src_node == nullptr)
+    {
+        cout << "cp: " << src << ": No such file or directory" << endl;
+        return;
+    }
+    if (src_node->type == 'd')
+    {
+        cout << "cp: omitting directory '" << src << "'" << endl;
+        return;
+    }
+    TreeNode* dst_node = find_on_pwd(dst_dir->child, dst_paths[1]);
+    if (dst_node != nullptr)
+    {
+        cout << "cp: cannot overwrite non-directory '" << dst << "' with directory '" << src << "'" << endl;
+        return;
+    }
+    TreeNode* newNode = new TreeNode(dst_dir, dst_paths[1]);
+    newNode->type = src_node->type;
+    newNode->contents = src_node->contents;
+    newNode->permission = src_node->permission;
+    newNode->cdate = src_node->cdate;
+    newNode->mdate = src_node->mdate;
+    newNode->link = dst_dir->child;
+    dst_dir->child = newNode;
+    if (keep == 0)
+    {
+        remove(root, pwd, src);
+    }
+    cout << "cp: copied '" << src << "' to '" << dst << "'" << endl;
 }
 
 void chmod(TreeNode* root, TreeNode* pwd, string path, string new_modes) {
@@ -322,6 +373,86 @@ void chmod(TreeNode* root, TreeNode* pwd, string path, string new_modes) {
     } else {
         cout << "chmod: cannot access '" << path << "': No such file or directory" << endl;
     }
+}
+
+// Remove a directory if it is empty
+void rmdir(TreeNode* root, TreeNode* pwd, string path) {
+    TreeNode* target = find_node(root, pwd, path);
+    if (target == nullptr) {
+        cout << "rmdir: cannot remove '" << path << "': No such file or directory" << endl;
+        return;
+    }
+    if (target->type != 'd') {
+        cout << "rmdir: cannot remove '" << path << "': Not a directory" << endl;
+        return;
+    }
+    if (target->child != nullptr) {
+        cout << "rmdir: cannot remove '" << path << "': Directory not empty" << endl;
+        return;
+    }
+    remove(root, pwd, path);
+}
+
+// Copy a file or directory from src to dst
+void cp(TreeNode* root, TreeNode* pwd, string src, string dst) {
+    TreeNode* srcNode = find_node(root, pwd, src);
+    if (srcNode == nullptr) {
+        cout << "cp: cannot stat '" << src << "': No such file or directory" << endl;
+        return;
+    }
+    TreeNode* dstDir = cd(root, pwd, dst);
+    if (dstDir == nullptr) {
+        cout << "cp: cannot create '" << dst << "': No such file or directory" << endl;
+        return;
+    }
+    TreeNode* newCopy = new TreeNode(dstDir, srcNode->name);
+    newCopy->type = srcNode->type;
+    newCopy->link = dstDir->child;
+    dstDir->child = newCopy;
+    cout << "cp: copied '" << src << "' to '" << dst << "'" << endl;
+}
+
+// Move a file or directory from src to dst
+void mv(TreeNode* root, TreeNode* pwd, string src, string dst) {
+    cp(root, pwd, src, dst);  // First copy
+    remove(root, pwd, src);  // Then delete original
+    cout << "mv: moved '" << src << "' to '" << dst << "'" << endl;
+}
+
+// Edit the contents of a file
+void edit(TreeNode* root, TreeNode* pwd, string path) {
+    TreeNode* fileNode = find_node(root, pwd, path);
+    if (fileNode == nullptr) {
+        cout << "edit: cannot edit '" << path << "': No such file or directory" << endl;
+        return;
+    }
+    if (fileNode->type != '-') {
+        cout << "edit: '" << path << "' is not a file" << endl;
+        return;
+    }
+    cout << "Enter content to append to '" << fileNode->name << "': ";
+    string content;
+    getline(cin, content);
+
+    fileNode->contents.push_back(content);
+
+    fileNode->mdate = curr_time();
+    cout << "edit: appended content to file '" << path << "'" << endl;
+}
+
+void cat(TreeNode* root, TreeNode* pwd, string path) {
+    TreeNode* fileNode = find_node(root, pwd, path);
+    if (fileNode == nullptr) {
+        cout << "cat: cannot open '" << path << "': No such file or directory" << endl;
+        return;
+    }
+    if (fileNode->type != '-') {
+        cout << "cat: '" << path << "' is not a file" << endl;
+        return;
+    }
+
+    // Use the custom StringList to iterate and print each string
+    fileNode->contents.displayForward();
 }
 
 void clear_screen() {
