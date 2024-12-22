@@ -59,7 +59,7 @@ void linux_tree(TreeNode* root);
 void print_tree(TreeNode* pwd, string prev);
 void print_ls(TreeNode* pwd);
 void print_stat(TreeNode* root, TreeNode* pwd, string path);
-string pwd_str(TreeNode* root, TreeNode* pwd);
+string pwd_str(TreeNode* pwd);
 TreeNode* find_node(TreeNode* root, TreeNode* pwd, string path);
 TreeNode* find_on_pwd(TreeNode* pwd, string name);
 list split(string str, char delim);

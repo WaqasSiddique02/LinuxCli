@@ -56,58 +56,105 @@ int main()
         }
         else if (command == "ls")
         {
-            print_ls(pwd);
+            print_ls(pwd); // List contents of the current directory
         }
-        else if (command == "stat")
+        else if (command == "tree")
         {
-            string path;
-            cin >> path;
-            command += " " + path;        // Append the argument to the command for history
-            commandHistory.push(command); // Update command history
-            print_stat(root, pwd, path);
+            linux_tree(root); // List contents of the current directory in a tree-like format
         }
         else if (command == "pwd")
         {
-            cout << pwd_str(pwd) << endl;
+            cout << pwd_str(pwd) << endl; // Print the current working directory
         }
         else if (command == "cd")
         {
             string path;
             cin >> path;
             command += " " + path;
-            TreeNode *newPwd = cd(root, pwd, path);
+            TreeNode *newPwd = cd(root, pwd, path); // Change directory to DIR
             if (newPwd != nullptr)
             {
                 pwd = newPwd;
             }
+        }
+        else if (command == "find")
+        {
+            string name;
+            cin >> name;
+            TreeNode* node = find_node(root, pwd, name); // Find file or directory named N
+            if (node != nullptr) {
+                cout << "Found: " << node->name << endl;
+            } else {
+                cout << "Not found" << endl;
+            }
+        }
+        else if (command == "stat")
+        {
+            string path;
+            cin >> path;
+            command += " " + path;
+            print_stat(root, pwd, path); // Print metadata of file or directory at path P
         }
         else if (command == "mkdir")
         {
             string path;
             cin >> path;
             command += " " + path;
-            create(root, pwd, path, 'd');
+            create(root, pwd, path, 'd'); // Create a directory named D
         }
         else if (command == "touch")
         {
             string path;
             cin >> path;
             command += " " + path;
-            create(root, pwd, path, '-');
+            create(root, pwd, path, '-'); // Create a file named F
         }
         else if (command == "rm")
         {
             string path;
             cin >> path;
             command += " " + path;
-            remove(root, pwd, path);
+            remove(root, pwd, path); // Remove the file or directory at path P
+        }
+        else if (command == "rmdir")
+        {
+            string path;
+            cin >> path;
+            command += " " + path;
+            remove(root, pwd, path); // Remove the directory at path P
+        }
+        else if (command == "cp")
+        {
+            string src, dst;
+            cin >> src >> dst;
+            dupl(root, pwd, src, dst, 0); // Copy file or directory from S to D
+        }
+        else if (command == "mv")
+        {
+            string src, dst;
+            cin >> src >> dst;
+            dupl(root, pwd, src, dst, 1); // Move file or directory from S to D
+        }
+        else if (command == "edit")
+        {
+            string path;
+            cin >> path;
+            command += " " + path;
+            edit(root, pwd, path); // Edit the file at path P
+        }
+        else if (command == "cat")
+        {
+            string path;
+            cin >> path;
+            command += " " + path;
+            cat(root, pwd, path); // Print the contents of the file at path P
         }
         else if (command == "chmod")
         {
             string path, mode;
             cin >> path >> mode;
             command += " " + path + " " + mode;
-            chmod(root, pwd, path, mode);
+            chmod(root, pwd, path, mode); // Change permissions of the file at path P to mode M
         }
         else if (command == "history")
         {
@@ -123,7 +170,7 @@ int main()
         }
         else if (command == "clear")
         {
-            clear_screen();
+            clear_screen(); // Clear the console screen
         }
         else if (command == "exit")
         {
