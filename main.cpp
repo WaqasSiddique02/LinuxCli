@@ -2,13 +2,14 @@
 #include "list.h"
 #include "hashTable.h"
 #include "tree.h"
+#include "stack.h"
 
 using namespace std;
 
 void print_help()
 {
     cout << "*** Follows the syntax of Linux shell commands ***" << endl
-        << endl;
+         << endl;
     cout << "\thelp      -   print this message" << endl;
     cout << "\tls        -   list contents of the current directory" << endl;
     cout << "\ttree      -   list contents of the current directory in a tree-like format" << endl;
@@ -25,75 +26,116 @@ void print_help()
     cout << "\tedit P    -   edit the file at path P" << endl;
     cout << "\tcat P     -   print the contents of the file at path P" << endl;
     cout << "\tchmod M P -   change permissions of the file at path P to mode M" << endl;
+    cout << "\thistory   -   show command history" << endl;
     cout << "\tclear     -   clear the console screen" << endl;
     cout << "\texit      -   exit the shell" << endl;
 }
 
-int main() {    
-    TreeNode* root = new TreeNode(nullptr, "");
-    TreeNode* pwd = root;                    
-    
+int main()
+{
+    TreeNode *root = new TreeNode(nullptr, "");
+    TreeNode *pwd = root;
+
     print_help();
-    linux_tree(root);      
+    linux_tree(root);
+
+    stack commandHistory; // Initialize a stack to store the history
+
     string command;
-    while (true) {
+    while (true)
+    {
         cout << ">> ";
         cin >> command;
 
-        if (command == "help") {
+        // Push the command to the history stack
+        commandHistory.push(command);
+
+        if (command == "help")
+        {
             print_help();
         }
-        else if (command == "ls") {
+        else if (command == "ls")
+        {
             print_ls(pwd);
         }
-        else if (command == "stat") {
+        else if (command == "stat")
+        {
             string path;
             cin >> path;
+            command += " " + path;        // Append the argument to the command for history
+            commandHistory.push(command); // Update command history
             print_stat(root, pwd, path);
         }
-        else if (command == "pwd") {
+        else if (command == "pwd")
+        {
             cout << pwd_str(pwd) << endl;
         }
-        else if (command == "cd") {
+        else if (command == "cd")
+        {
             string path;
             cin >> path;
-            TreeNode* newPwd = cd(root, pwd, path);
-            if (newPwd != nullptr) {
+            command += " " + path;
+            TreeNode *newPwd = cd(root, pwd, path);
+            if (newPwd != nullptr)
+            {
                 pwd = newPwd;
             }
         }
-        else if (command == "mkdir") {
+        else if (command == "mkdir")
+        {
             string path;
             cin >> path;
+            command += " " + path;
             create(root, pwd, path, 'd');
         }
-        else if (command == "touch") {
+        else if (command == "touch")
+        {
             string path;
             cin >> path;
+            command += " " + path;
             create(root, pwd, path, '-');
         }
-        else if (command == "rm") {
+        else if (command == "rm")
+        {
             string path;
             cin >> path;
+            command += " " + path;
             remove(root, pwd, path);
         }
-        else if (command == "chmod") {
+        else if (command == "chmod")
+        {
             string path, mode;
             cin >> path >> mode;
+            command += " " + path + " " + mode;
             chmod(root, pwd, path, mode);
         }
-        else if (command == "clear") {
+        else if (command == "history")
+        {
+            cout << "Command History:" << endl;
+            stack tempStack = commandHistory; // Make a copy of the command history
+            int index = 1;
+
+            while (!tempStack.isEmpty())
+            {
+                cout << index++ << ": " << tempStack.getTop() << endl; // Use getTop() instead of top()
+                tempStack.pop();
+            }
+        }
+        else if (command == "clear")
+        {
             clear_screen();
         }
-        else if (command == "exit") {
+        else if (command == "exit")
+        {
             cout << "Exiting file system simulator. Goodbye!" << endl;
             break;
         }
-        else {
+        else
+        {
             cout << "Unknown command. Type 'help' for the list of commands." << endl;
         }
     }
 
-    delete root; 
+    delete root;
     return 0;
 }
