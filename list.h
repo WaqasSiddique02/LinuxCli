@@ -193,23 +193,27 @@ public:
         cout << endl;
     }
 
-    // Destructor to free up memory
-    ~list()
-    {
-        Node *temp = head;
-        while (temp != nullptr)
-        {
-            Node *nextNode = temp->next;
-            delete temp;
-            temp = nextNode;
-        }
-    }
-
      string back() const {
         if (tail != nullptr) {
             return tail->data;
         }
         return "";
+    }
+
+    void remove_last() {
+        if (tail == nullptr) {  // List is empty
+            std::cout << "List is already empty!" << std::endl;
+            return;
+        }
+
+        Node* temp = tail;      // Node to be deleted
+        if (tail->prev) {       // If there is more than one node
+            tail = tail->prev;  // Move tail to the previous node
+            tail->next = nullptr;
+        } else {                // If there is only one node
+            head = tail = nullptr;
+        }
+        delete temp;  // Free the memory
     }
 
     void clear() {
@@ -248,4 +252,99 @@ public:
     Node* end() {
         return nullptr;
     }
+
+    class const_iterator {
+    public:
+        const_iterator(Node* node) : node_(node) {}
+
+        const string& operator*() const {
+            return node_->data; // Dereference to get the node's data
+        }
+
+        const_iterator& operator++() {
+            node_ = node_->next; // Move to the next node
+            return *this;
+        }
+
+        bool operator!=(const const_iterator& other) const {
+            return node_ != other.node_; // Compare iterators
+        }
+
+    private:
+        Node* node_;
+    };
+
+    // Return a const_iterator pointing to the head
+    const_iterator begin() const {
+        return const_iterator(head);
+    }
+
+    // Return a const_iterator pointing to the end (nullptr)
+    const_iterator end() const {
+        return const_iterator(nullptr);
+    }
+
+    ~list(){
+        Node *temp = head;
+        while (temp != nullptr)
+        {
+            Node *nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+    }
 };
+
+// class CommandHistory {
+// private:
+//     list history;       // Doubly linked list for storing commands
+//     Node* current;      // Pointer to the current command in history
+
+// public:
+//     CommandHistory() : current(nullptr) {}
+
+//     // Add a new command to history
+//     void add_command(const string& command) {
+//         if (current && current->next) {
+//             // Clear future history if a new command is added after undo
+//             while (current->next) {
+//                 history.remove_last();
+//             }
+//         }
+//         history.push_back(command);
+//         current = history.getTail();  // Move current to the latest command
+//     }
+
+//     // Undo the last command
+//     void undo() {
+//         if (current == nullptr || current->prev == nullptr) {
+//             cout << "Nothing to undo!" << endl;
+//             return;
+//         }
+//         cout << "Undoing: " << current->data << endl;
+//         current = current->prev;
+//     }
+
+//     // Redo the next command
+//     void redo() {
+//         if (current == nullptr || current->next == nullptr) {
+//             cout << "Nothing to redo!" << endl;
+//             return;
+//         }
+//         current = current->next;
+//         cout << "Redoing: " << current->data << endl;
+//     }
+
+//     void show_history() const {
+//         Node* temp = history.getHead();
+//         cout << "Command History:" << endl;
+//         while (temp != nullptr) {
+//             cout << temp->data;
+//             if (temp == current) {
+//                 cout << " <- current";
+//             }
+//             cout << endl;
+//             temp = temp->next;
+//         }
+//     }
+// };

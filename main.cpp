@@ -2,7 +2,8 @@
 #include "list.h"
 #include "hashTable.h"
 #include "tree.h"
-#include "stack.h"
+#include <conio.h>
+//#include "stack.h"
 
 using namespace std;
 
@@ -35,20 +36,17 @@ int main()
 {
     TreeNode *root = new TreeNode(nullptr, "");
     TreeNode *pwd = root;
+    //CommandHistory shell;
 
     print_help();
     linux_tree(root);
-
-    stack commandHistory; // Initialize a stack to store the history
 
     string command;
     while (true)
     {
         cout << ">> ";
         cin >> command;
-
-        // Push the command to the history stack
-        commandHistory.push(command);
+        //shell.add_command(command);
 
         if (command == "help")
         {
@@ -156,27 +154,30 @@ int main()
             command += " " + path + " " + mode;
             chmod(root, pwd, path, mode); // Change permissions of the file at path P to mode M
         }
-        else if (command == "history")
-        {
-            cout << "Command History:" << endl;
-            stack tempStack = commandHistory; // Make a copy of the command history
-            int index = 1;
+        // else if (command == "history")
+        // {
+        //     cout << "Command History:" << endl;
+        //     stack tempStack = commandHistory; // Make a copy of the command history
+        //     int index = 1;
 
-            while (!tempStack.isEmpty())
-            {
-                cout << index++ << ": " << tempStack.getTop() << endl; // Use getTop() instead of top()
-                tempStack.pop();
-            }
-        }
+        //     while (!tempStack.isEmpty())
+        //     {
+        //         cout << index++ << ": " << tempStack.getTop() << endl;
+        //         tempStack.pop();
+        //     }
+        // }
         else if (command == "clear")
         {
             clear_screen(); // Clear the console screen
         }
-        else if (command == "exit")
-        {
+        else if (command == "exit"){
             cout << "Exiting file system simulator. Goodbye!" << endl;
             break;
         }
+        // else if (command == "history"){
+        //     shell.show_history();
+        // }
+
         else
         {
             cout << "Unknown command. Type 'help' for the list of commands." << endl;
