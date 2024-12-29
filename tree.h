@@ -4,7 +4,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <iomanip>
-#include <limits>
 #include "list.h"
 #include "hashTable.h"
 using namespace std;
@@ -491,32 +490,111 @@ void rmdir(TreeNode *root, TreeNode *pwd, string path)
 }
 
 // Copy a file or directory from src to dst
-void cp(TreeNode *root, TreeNode *pwd, string src, string dst)
-{
+void cp(TreeNode *root, TreeNode *pwd, string src, string dst) {
+    // Find source node
     TreeNode *srcNode = find_node(root, pwd, src);
-    if (srcNode == nullptr)
-    {
+    if (srcNode == nullptr) {
         cout << "cp: cannot stat '" << src << "': No such file or directory" << endl;
         return;
     }
-    TreeNode *dstDir = cd(root, pwd, dst);
-    if (dstDir == nullptr)
-    {
+
+    // Extract the destination directory path and filename
+    string dstPath = dst;
+    string dstName = srcNode->name;  // Default to source name
+
+    // If dst contains a new filename (ends with non-slash)
+    size_t lastSlash = dst.find_last_of('/');
+    if (lastSlash != string::npos) {
+        // If dst path ends with '/', use source filename
+        if (lastSlash == dst.length() - 1) {
+            dstPath = dst.substr(0, dst.length() - 1);
+        } else {
+            // Use the provided destination filename
+            dstName = dst.substr(lastSlash + 1);
+            dstPath = dst.substr(0, lastSlash);
+        }
+    }
+
+    // Find destination directory
+    TreeNode *dstDir = cd(root, pwd, dstPath);
+    if (dstDir == nullptr) {
         cout << "cp: cannot create '" << dst << "': No such file or directory" << endl;
         return;
     }
-    TreeNode *newCopy = new TreeNode(dstDir, srcNode->name);
+
+    // Check if destination already exists
+    TreeNode *existing = find_node(root, dstDir, dstName);
+    if (existing != nullptr) {
+        cout << "cp: '" << dst << "': File already exists" << endl;
+        return;
+    }
+
+    // Create new node in destination directory
+    TreeNode *newCopy = new TreeNode(dstDir, dstName);
     newCopy->type = srcNode->type;
     newCopy->link = dstDir->child;
     dstDir->child = newCopy;
+
     cout << "cp: copied '" << src << "' to '" << dst << "'" << endl;
 }
 
 // Move a file or directory from src to dst
-void mv(TreeNode *root, TreeNode *pwd, string src, string dst)
-{
-    cp(root, pwd, src, dst); // First copy
-    remove(root, pwd, src);  // Then delete original
+void mv(TreeNode *root, TreeNode *pwd, string src, string dst) {
+    // Find source node
+    TreeNode *srcNode = find_node(root, pwd, src);
+    if (srcNode == nullptr) {
+        cout << "mv: cannot stat '" << src << "': No such file or directory" << endl;
+        return;
+    }
+
+    // Extract destination directory path and filename
+    string dstPath = dst;
+    string dstName = srcNode->name;
+
+    size_t lastSlash = dst.find_last_of('/');
+    if (lastSlash != string::npos) {
+        if (lastSlash == dst.length() - 1) {
+            dstPath = dst.substr(0, dst.length() - 1);
+        } else {
+            dstName = dst.substr(lastSlash + 1);
+            dstPath = dst.substr(0, lastSlash);
+        }
+    }
+
+    // Find destination directory
+    TreeNode *dstDir = cd(root, pwd, dstPath);
+    if (dstDir == nullptr) {
+        cout << "mv: cannot move to '" << dst << "': No such file or directory" << endl;
+        return;
+    }
+
+    // Check if destination already exists
+    TreeNode *existing = find_node(root, dstDir, dstName);
+    if (existing != nullptr) {
+        cout << "mv: '" << dst << "': File already exists" << endl;
+        return;
+    }
+
+    // Get source node's parent
+    TreeNode *srcParent = srcNode->parent;
+    
+    // Remove source node from its parent's child list
+    if (srcParent->child == srcNode) {
+        srcParent->child = srcNode->link;
+    } else {
+        TreeNode *curr = srcParent->child;
+        while (curr->link != srcNode) {
+            curr = curr->link;
+        }
+        curr->link = srcNode->link;
+    }
+
+    // Update source node's properties
+    srcNode->name = dstName;
+    srcNode->parent = dstDir;
+    srcNode->link = dstDir->child;
+    dstDir->child = srcNode;
+
     cout << "mv: moved '" << src << "' to '" << dst << "'" << endl;
 }
 

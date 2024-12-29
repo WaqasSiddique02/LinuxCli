@@ -258,7 +258,7 @@ public:
         const_iterator(Node* node) : node_(node) {}
 
         const string& operator*() const {
-            return node_->data; // Dereference to get the node's data
+            return node_->data;
         }
 
         const_iterator& operator++() {

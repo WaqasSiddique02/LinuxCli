@@ -3,7 +3,7 @@
 #include "hashTable.h"
 #include "tree.h"
 #include <conio.h>
-//#include "stack.h"
+// #include "stack.h"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ void print_help()
     cout << "\tedit P    -   edit the file at path P" << endl;
     cout << "\tcat P     -   print the contents of the file at path P" << endl;
     cout << "\tchmod M P -   change permissions of the file at path P to mode M" << endl;
-    cout << "\thistory   -   show command history" << endl;
+    //cout << "\thistory   -   show command history" << endl;
     cout << "\tclear     -   clear the console screen" << endl;
     cout << "\texit      -   exit the shell" << endl;
 }
@@ -36,7 +36,7 @@ int main()
 {
     TreeNode *root = new TreeNode(nullptr, "");
     TreeNode *pwd = root;
-    //CommandHistory shell;
+    // CommandHistory shell;
 
     print_help();
     linux_tree(root);
@@ -46,7 +46,7 @@ int main()
     {
         cout << ">> ";
         cin >> command;
-        //shell.add_command(command);
+        // shell.add_command(command);
 
         if (command == "help")
         {
@@ -79,10 +79,13 @@ int main()
         {
             string name;
             cin >> name;
-            TreeNode* node = find_node(root, pwd, name); // Find file or directory named N
-            if (node != nullptr) {
+            TreeNode *node = find_node(root, pwd, name); // Find file or directory named N
+            if (node != nullptr)
+            {
                 cout << "Found: " << node->name << endl;
-            } else {
+            }
+            else
+            {
                 cout << "Not found" << endl;
             }
         }
@@ -125,13 +128,29 @@ int main()
         {
             string src, dst;
             cin >> src >> dst;
-            dupl(root, pwd, src, dst, 0); // Copy file or directory from S to D
+            if (src.empty() || dst.empty())
+            {
+                cout << "cp: missing file operand" << endl;
+                cout << "Usage: cp source_file destination" << endl;
+            }
+            else
+            {
+                cp(root, pwd, src, dst); // Using the new cp function instead of dupl
+            }
         }
         else if (command == "mv")
         {
             string src, dst;
             cin >> src >> dst;
-            dupl(root, pwd, src, dst, 1); // Move file or directory from S to D
+            if (src.empty() || dst.empty())
+            {
+                cout << "mv: missing file operand" << endl;
+                cout << "Usage: mv source_file destination" << endl;
+            }
+            else
+            {
+                mv(root, pwd, src, dst);
+            }
         }
         else if (command == "edit")
         {
@@ -170,7 +189,8 @@ int main()
         {
             clear_screen(); // Clear the console screen
         }
-        else if (command == "exit"){
+        else if (command == "exit")
+        {
             cout << "Exiting file system simulator. Goodbye!" << endl;
             break;
         }
