@@ -85,7 +85,7 @@ string curr_time()
 
     if (localtime_s(&tm, &t) != 0)
     {
-        throw std::runtime_error("Failed to get local time");
+        throw runtime_error("Failed to get local time");
     }
 
     ostringstream oss;
@@ -336,7 +336,7 @@ TreeNode *cd(TreeNode *root, TreeNode *pwd, string path)
 
         // Search for the child directory
         pwd = find_on_pwd(pwd->child, dir);
-        if (pwd == nullptr)
+        if (pwd == nullptr /*|| pwd->type != 'd'*/)
         {
             // If directory is not found, print error and return nullptr
             cout << "cd: " << path << ": No such file or directory" << endl;
@@ -616,6 +616,13 @@ void edit(TreeNode* root, TreeNode* pwd, string path) {
         return;
     }
 
+    // Check write permission using the permission system
+    string permString = fileNode->get_permission();
+    if (permString[1] != 'w') {
+        cout << "edit: cannot edit '" << path << "': Permission denied" << endl;
+        return;
+    }
+
     while (true) {
         // Show current contents
         cout << "\nCurrent contents of '" << fileNode->name << "':" << endl;
@@ -735,6 +742,7 @@ void edit(TreeNode* root, TreeNode* pwd, string path) {
         fileNode->mdate = curr_time();
     }
 }
+
 
 void cat(TreeNode *root, TreeNode *pwd, string path)
 {
