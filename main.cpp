@@ -2,10 +2,91 @@
 #include "list.h"
 #include "hashTable.h"
 #include "tree.h"
-#include <conio.h>
-// #include "stack.h"
-
+#include <fstream>
 using namespace std;
+
+const int MAX_SUGGESTIONS = 100;
+const int MAX_COMMANDS = 18; // Number of valid commands
+
+// Array of valid commands
+const string VALID_COMMANDS[MAX_COMMANDS] = {
+    "help", "ls", "tree", "pwd", "cd", "find", "stat", 
+    "mkdir", "touch", "rm", "rmdir", "cp", "mv", 
+    "edit", "cat", "chmod", "clear", "exit"
+};
+
+// Function to check if a command exists in an array
+bool command_exists(const string suggestions[], int count, const string& command) {
+    for (int i = 0; i < count; i++) {
+        if (suggestions[i] == command) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Function to check if a command is valid
+bool is_valid_command(const string &command) {
+    
+    string base_command = command.substr(0, command.find(' ')); // Extract the base command before any arguments
+    
+    for (int i = 0; i < MAX_COMMANDS; i++) {
+        if (VALID_COMMANDS[i] == base_command) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void add_to_history(const string &command) {
+    // Only add valid commands to history
+    if (is_valid_command(command)) {
+        ofstream historyFile("history.txt", ios::app);
+        if (historyFile.is_open()) {
+            historyFile << command << endl;
+            historyFile.close();
+        }
+        else {
+            cerr << "Error: Unable to open history file." << endl;
+        }
+    }
+}
+
+int get_suggestions(const string &partialCommand, string suggestions[]) {
+    // Dont suggest if the command is already valid
+    if (is_valid_command(partialCommand)) {
+        return 0;
+    }
+
+    int count = 0;
+
+    // First check against valid commands
+    for (int i = 0; i < MAX_COMMANDS; i++) {
+        if (VALID_COMMANDS[i].find(partialCommand) == 0) { // Command starts with partial input
+            if (!command_exists(suggestions, count, VALID_COMMANDS[i])) {
+                suggestions[count++] = VALID_COMMANDS[i];
+                if (count >= MAX_SUGGESTIONS) return count;
+            }
+        }
+    }
+
+    // Then check history for more complex commands with arguments
+    ifstream historyFile("history.txt");
+    if (historyFile.is_open()) {
+        string line;
+        while (getline(historyFile, line)) {
+            if (line.find(partialCommand) == 0) { // Line starts with partial input
+                if (!command_exists(suggestions, count, line)) {
+                    suggestions[count++] = line;
+                    if (count >= MAX_SUGGESTIONS) break;
+                }
+            }
+        }
+        historyFile.close();
+    }
+
+    return count;
+}
 
 void print_help()
 {
@@ -27,7 +108,6 @@ void print_help()
     cout << "\tedit P    -   edit the file at path P" << endl;
     cout << "\tcat P     -   print the contents of the file at path P" << endl;
     cout << "\tchmod M P -   change permissions of the file at path P to mode M" << endl;
-    //cout << "\thistory   -   show command history" << endl;
     cout << "\tclear     -   clear the console screen" << endl;
     cout << "\texit      -   exit the shell" << endl;
 }
@@ -36,17 +116,34 @@ int main()
 {
     TreeNode *root = new TreeNode(nullptr, "");
     TreeNode *pwd = root;
-    // CommandHistory shell;
 
     print_help();
     linux_tree(root);
 
     string command;
+    string suggestions[MAX_SUGGESTIONS];
+
     while (true)
     {
         cout << ">> ";
         cin >> command;
-        // shell.add_command(command);
+
+        if (!is_valid_command(command)) {
+            int suggestionCount = get_suggestions(command, suggestions);
+            if (suggestionCount > 0) {
+                cout << "Did you mean:" << endl;
+                for (int i = 0; i < suggestionCount; i++) {
+                    cout << "  " << suggestions[i] << endl;
+                }
+                continue;
+            } else {
+                cout << "Unknown command. Type 'help' for the list of commands." << endl;
+                continue;
+            }
+        }
+
+        // Process valid command
+        add_to_history(command);
 
         if (command == "help")
         {
@@ -58,7 +155,7 @@ int main()
         }
         else if (command == "tree")
         {
-            linux_tree(root); // List contents of the current directory in a tree-like format
+            print_tree(root, ""); // List contents of the current directory in a tree-like format
         }
         else if (command == "pwd")
         {
@@ -173,18 +270,6 @@ int main()
             command += " " + path + " " + mode;
             chmod(root, pwd, path, mode); // Change permissions of the file at path P to mode M
         }
-        // else if (command == "history")
-        // {
-        //     cout << "Command History:" << endl;
-        //     stack tempStack = commandHistory; // Make a copy of the command history
-        //     int index = 1;
-
-        //     while (!tempStack.isEmpty())
-        //     {
-        //         cout << index++ << ": " << tempStack.getTop() << endl;
-        //         tempStack.pop();
-        //     }
-        // }
         else if (command == "clear")
         {
             clear_screen(); // Clear the console screen
@@ -194,10 +279,6 @@ int main()
             cout << "Exiting file system simulator. Goodbye!" << endl;
             break;
         }
-        // else if (command == "history"){
-        //     shell.show_history();
-        // }
-
         else
         {
             cout << "Unknown command. Type 'help' for the list of commands." << endl;

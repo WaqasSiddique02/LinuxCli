@@ -9,7 +9,6 @@
 using namespace std;
 
 string curr_time();
-
 class TreeNode
 {
 public:
@@ -95,7 +94,7 @@ string curr_time()
 
 void linux_tree(TreeNode *root)
 {
-    // Create some directories and files for demonstration purposes
+    // Creating some directories and files for demonstration purposes
     TreeNode *home = create(root, root, "home", 'd');
     TreeNode *user = create(root, home, "user", 'd');
     TreeNode *docs = create(root, user, "documents", 'd');
@@ -130,15 +129,13 @@ void print_ls(TreeNode *pwd)
         return;
     }
 
-    // Print all immediate child nodes (files or directories)
+    // Print all immediate child nodes files or directories
     TreeNode *current = pwd->child;
     while (current != nullptr)
     {
-        // Print details of the current file/folder in the directory
+        // Print details of the current file folder in the directory
         cout << current->name << "\t" << current->type << current->get_permission() << "\t" << current->mdate << endl;
-
-        // Move to the next sibling in the directory
-        current = current->link;
+        current = current->link;  // Move to the next sibling in the directory
     }
 }
 
@@ -301,31 +298,28 @@ TreeNode *cd(TreeNode *root, TreeNode *pwd, string path)
         return pwd; // If path is empty, return the current directory
     }
 
-    // If path starts with '/', reset to the root
-    if (path[0] == '/')
+    if (path[0] == '/') // If path starts with '/', reset to the root
     {
         pwd = root;
         path = path.substr(1); // Remove the leading '/'
     }
 
-    // Split the path into directories
-    list paths = split(path, '/');
+    list paths = split(path, '/');   // Split the path into directories
     Node *temp = paths.getHead(); // Get the first directory component
 
     while (temp != nullptr)
     {
         string dir = temp->data; // Get the directory name from the list
 
-        if (dir == ".")
+        if (dir == ".")// If the directory is "." stay in the current directory
         {
-            // If the directory is ".", stay in the current directory
             temp = temp->next;
             continue;
         }
 
         if (dir == "..")
         {
-            // If the directory is "..", go up to the parent
+            // If the directory is ".." go up to the parent
             if (pwd->parent != nullptr)
             {
                 pwd = pwd->parent;
@@ -502,10 +496,10 @@ void cp(TreeNode *root, TreeNode *pwd, string src, string dst) {
     string dstPath = dst;
     string dstName = srcNode->name;  // Default to source name
 
-    // If dst contains a new filename (ends with non-slash)
+    // If dst contains a new filename ends with non-slash
     size_t lastSlash = dst.find_last_of('/');
     if (lastSlash != string::npos) {
-        // If dst path ends with '/', use source filename
+        // If dst path ends with '/' use source filename
         if (lastSlash == dst.length() - 1) {
             dstPath = dst.substr(0, dst.length() - 1);
         } else {
@@ -746,7 +740,7 @@ void edit(TreeNode* root, TreeNode* pwd, string path) {
 
 void cat(TreeNode *root, TreeNode *pwd, string path)
 {
-    // If the path is absolute (starts with '/'), resolve it from the root
+    // If the path is absolute starts with '/' resolve it from the root
     if (path[0] == '/')
     {
         TreeNode *fileNode = find_node(root, nullptr, path);
@@ -764,7 +758,7 @@ void cat(TreeNode *root, TreeNode *pwd, string path)
     }
     else
     {
-        // If the path is relative, resolve it from the current working directory (pwd)
+        // If the path is relative resolve it from the current working directory (pwd)
         TreeNode *fileNode = find_node(root, pwd, path);
         if (fileNode == nullptr)
         {

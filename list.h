@@ -28,7 +28,7 @@ public:
  }
 
     void push_front(const string &value)
-    { // Push a value to the front
+    { 
         Node *newNode = new Node(value);
         if (head == nullptr)
         {
@@ -43,7 +43,7 @@ public:
     }
 
     void push_back(const string &value)
-    { // Push a value to the back
+    {
         Node *newNode = new Node(value);
         if (tail == nullptr)
         {
@@ -58,7 +58,7 @@ public:
     }
 
     void pop_front()
-    { // Pop a value from the front
+    {
         if (head == nullptr)
         {
             return;
@@ -74,7 +74,6 @@ public:
         }
     }
 
-    // Pop a value from the back
     void pop_back()
     {
         if (tail == nullptr)
@@ -202,7 +201,7 @@ public:
 
     void remove_last() {
         if (tail == nullptr) {  // List is empty
-            std::cout << "List is already empty!" << std::endl;
+            cout << "List is already empty!" << std::endl;
             return;
         }
 
