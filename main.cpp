@@ -125,7 +125,7 @@ int main()
 
     while (true)
     {
-        cout << ">> ";
+        cout << pwd_str(pwd) << " $ ";
         cin >> command;
 
         if (!is_valid_command(command)) {
@@ -276,7 +276,7 @@ int main()
         }
         else if (command == "exit")
         {
-            cout << "Exiting file system simulator. Goodbye!" << endl;
+            cout << "Shuting Down !!" << endl;
             break;
         }
         else
